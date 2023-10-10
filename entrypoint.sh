@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-while getopts "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:r:s:t:u:v:z:" o; do
+while getopts "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:r:s:t:u:v:z:x:y:" o; do
    case "${o}" in
        a)
          export scanType=${OPTARG}
@@ -71,6 +71,12 @@ while getopts "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:r:s:t:u:v:z:" o; do
        z)
          export limitSeveritiesForSARIF=${OPTARG}
        ;;
+       x)
+         export debugMode=${OPTARG}
+       ;;
+       y)
+         export dockerHost=${OPTARG}
+       ;;
   esac
 done
 
@@ -88,6 +94,7 @@ fi
 ignoreUnfixed=$(echo $ignoreUnfixed | tr -d '\r')
 hideProgress=$(echo $hideProgress | tr -d '\r')
 limitSeveritiesForSARIF=$(echo $limitSeveritiesForSARIF | tr -d '\r')
+debugMode=$(echo $debugMode | tr -d '\r')
 
 GLOBAL_ARGS=""
 if [ $cacheDir ];then
@@ -157,6 +164,12 @@ fi
 if [ "$hideProgress" == "true" ];then
   ARGS="$ARGS --no-progress"
 fi
+if [ "$debugMode" == "true" ];then
+  ARGS="$ARGS --debug"
+fi
+if [ "$dockerHost" == "true" ];then
+  ARGS="$ARGS --docker-host $dockerHost"
+fi
 
 listAllPkgs=$(echo $listAllPkgs | tr -d '\r')
 if [ "$listAllPkgs" == "true" ];then
@@ -170,7 +183,7 @@ if [ "$skipFiles" ];then
 fi
 
 trivyConfig=$(echo $trivyConfig | tr -d '\r')
-# To make sure that uploda GitHub Dependency Snapshot succeeds, disable the script that fails first.
+# To make sure that upload GitHub Dependency Snapshot succeeds, disable the script that fails first.
 set +e
 if [ "${format}" == "sarif" ] && [ "${limitSeveritiesForSARIF}" != "true" ]; then
   # SARIF is special. We output all vulnerabilities,
